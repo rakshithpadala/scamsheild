@@ -1,0 +1,10 @@
+.env
+.venv/
+node_modules/
+ml/data/raw/
+ml/artifacts/
+mlruns/
+*.db
+__pycache__/
+.ipynb_checkpoints/
+dist/

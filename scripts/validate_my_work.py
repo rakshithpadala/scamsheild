@@ -50,9 +50,9 @@ def cmd_version(cmd):
     if not exe:
         return None
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=20, check=False)
         return (r.stdout or r.stderr).strip().splitlines()[0]
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         return "found (version unreadable)"
 
 
@@ -97,11 +97,12 @@ def check_env():
     if not os.path.exists(envp):
         out("FAIL", ".env not found (copy .env.example to .env and add your key)")
     else:
-        txt = open(envp, encoding="utf-8", errors="ignore").read()
-        provider = re.search(r"^LLM_PROVIDER\s*=\s*(\S+)", txt, re.M)
+        with open(envp, encoding="utf-8", errors="ignore") as f:
+            txt = f.read()
+        provider = re.search(r"^LLM_PROVIDER\s*=\s*(\S+)", txt, re.MULTILINE)
         prov = provider.group(1).lower() if provider else ""
         has_key = re.search(r"^(GEMINI_API_KEY|GROQ_API_KEY|OPENROUTER_API_KEY|ANTHROPIC_API_KEY|OPENAI_API_KEY|LLM_API_KEY)\s*=\s*\S{10,}",
-                            txt, re.M)
+                            txt, re.MULTILINE)
         if prov in ("ollama", "none", "template"):
             out("PASS", f"LLM_PROVIDER={prov} (no API key needed)")
         elif has_key:
@@ -109,7 +110,10 @@ def check_env():
         else:
             out("FAIL", "No free-tier key found in .env. Add GEMINI_API_KEY or GROQ_API_KEY, or set LLM_PROVIDER=ollama or template")
     gi = p(".gitignore")
-    gtxt = open(gi, encoding="utf-8", errors="ignore").read() if os.path.exists(gi) else ""
+    gtxt = ""
+    if os.path.exists(gi):
+        with open(gi, encoding="utf-8", errors="ignore") as f:
+            gtxt = f.read()
     for needed in [".env", "ml/data/raw", "node_modules", ".venv"]:
         out("PASS" if needed in gtxt else "FAIL", f".gitignore contains '{needed}'")
 
@@ -146,7 +150,11 @@ def check_data():
         out("FAIL", "Missing ml/data/raw/urlhaus/*.csv")
 
     d = p("docs", "DATA.md")
-    if os.path.exists(d) and len(open(d, encoding="utf-8", errors="ignore").read()) > 300:
+    d_len = 0
+    if os.path.exists(d):
+        with open(d, encoding="utf-8", errors="ignore") as f:
+            d_len = len(f.read())
+    if d_len > 300:
         out("PASS", "docs/DATA.md filled in")
     else:
         out("FAIL", "docs/DATA.md missing or too short (source, link, licence, date for each dataset)")
@@ -163,7 +171,8 @@ def check_rag():
     if not os.path.exists(sp):
         out("FAIL", "Missing knowledge_base/sources.csv")
         return
-    rows = list(csv.DictReader(open(sp, encoding="utf-8", errors="ignore")))
+    with open(sp, encoding="utf-8", errors="ignore") as f:
+        rows = list(csv.DictReader(f))
     need = {"file", "title", "publisher", "url", "date_accessed", "topic"}
     cols = set(rows[0].keys()) if rows else set()
     if not need.issubset(cols):
@@ -198,7 +207,8 @@ def check_handwritten():
     if not os.path.exists(hp):
         out("FAIL", "Missing ml/data/handwritten_test.csv")
         return
-    rows = list(csv.DictReader(open(hp, encoding="utf-8", errors="ignore")))
+    with open(hp, encoding="utf-8", errors="ignore") as f:
+        rows = list(csv.DictReader(f))
     need = {"text", "label_scam", "category", "has_url"}
     if not rows or not need.issubset(rows[0].keys()):
         out("FAIL", "Columns must be exactly: text,label_scam,category,has_url")
@@ -232,9 +242,10 @@ def check_handwritten():
     if syn:
         syn_texts = set()
         for f in syn:
-            for r in csv.DictReader(open(f, encoding="utf-8", errors="ignore")):
-                if r.get("text"):
-                    syn_texts.add(re.sub(r"\W+", " ", r["text"].lower()).strip())
+            with open(f, encoding="utf-8", errors="ignore") as fp:
+                for r in csv.DictReader(fp):
+                    if r.get("text"):
+                        syn_texts.add(re.sub(r"\W+", " ", r["text"].lower()).strip())
         overlap = sum(1 for t in texts if t in syn_texts)
         out("PASS" if overlap == 0 else "FAIL", f"{overlap} handwritten rows also appear in synthetic data (must be 0)")
 
@@ -243,8 +254,9 @@ def check_handwritten():
 def check_demo():
     dp = p("docs", "demo_inputs.md")
     if os.path.exists(dp):
-        txt = open(dp, encoding="utf-8", errors="ignore").read()
-        items = re.findall(r"^\s*(?:#+\s*)?(\d{1,2})[.)]", txt, re.M)
+        with open(dp, encoding="utf-8", errors="ignore") as f:
+            txt = f.read()
+        items = re.findall(r"^\s*(?:#+\s*)?(\d{1,2})[.)]", txt, re.MULTILINE)
         out("PASS" if len(set(items)) >= 10 else "FAIL", f"docs/demo_inputs.md has {len(set(items))} numbered items (need 10)")
     else:
         out("FAIL", "Missing docs/demo_inputs.md")

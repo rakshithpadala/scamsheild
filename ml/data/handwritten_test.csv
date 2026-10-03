@@ -1,0 +1,61 @@
+text,label_scam,category,has_url
+Dear customer your SBI YONO acct will be blocked today. Complete KYC now http://sbi-kyc-update.example.xyz/verify,1,bank_kyc_account,1
+"HDFC Bank: PAN not linked to your a/c, services suspended in 24 hrs. Update at http://hdfc-pan-link.example.xyz/u",1,bank_kyc_account,1
+"sir aapka account freeze ho jayega, KYC expire ho gaya hai. Abhi reply karke Aadhaar no aur card ke last 6 digit bhejiye",1,bank_kyc_account,0
+ICICI Alert: Netbanking id deactivated due to incomplete re-KYC. Login at icici-secure-login.example.xyz to reactivate,1,bank_kyc_account,1
+"Rs 4999 received from you by mistake pls return to my UPI, I'm sending collect request, just accept it",1,upi_payment,0
+Paytm: Your UPI PIN expires today. Reset here http://paytm-upi-reset.example.xyz/pin or wallet will be locked,1,upi_payment,1
+"bhai galti se 15000 tere account me chala gaya, wapas kar de plz. maine request bheji hai approve kar de",1,upi_payment,0
+PhonePe refund of Rs 2350 pending for failed txn. Scan this QR to receive money http://phonepe-refund.example.xyz/qr,1,upi_payment,1
+"Congratulations!! You have won Rs 25,00,000 in the Lucky Mobile Draw. Claim now: http://lucky-draw-winner.example.xyz/claim",1,cashback_reward_lottery,1
+"Amazon Anniversary: you are selected for Rs 500 cashback, tap http://amz-cashback-offer.example.xyz and enter card details to receive",1,cashback_reward_lottery,1
+Your Jio number won KBC lottery 25 lakh!! contact manager on whatsapp with ur name n address to claim prize,1,cashback_reward_lottery,0
+Scratch card unlocked 🎁 Rs 1000 reward points expire in 2 hrs. Redeem http://hdfc-reward-pts.example.xyz/r,1,cashback_reward_lottery,1
+Part time job offer! Earn Rs 3000-5000 daily just liking youtube videos from home. Join telegram group: http://easy-earn-jobs.example.xyz/join,1,job,1
+"Hiring data entry operators WFH, no experience needed. Pay Rs 800 registration fee to confirm ur joining. Reply for details",1,job,0
+"Hello this is HR from Amazon, ur resume shortlisted. Salary 45k/month. Pls send Aadhar copy and Rs 1500 for ID card",1,job,0
+Work from home job. Daily payment. 2 hrs only. msg WORK on whatsapp now http://wa.example.xyz/hrteam,1,job,1
+"Join our VIP stock tips group, 300% returns guaranteed in 1 month. Free demat guidance: http://nifty-vip-tips.example.xyz",1,investment,1
+Invest Rs 10000 in crypto mining plan and get 2000 daily. Limited slots left,1,investment,0
+"Sir aapka paisa double in 15 din, sirf 5000 se start karo. Abhi register karein http://double-money-ipo.example.xyz/reg",1,investment,1
+"IPO allotment sure shot, pay advance Rs 20000 to our agent and get 5x on listing day",1,investment,0
+"Pre-approved personal loan of Rs 5 lakh in 5 mins, no CIBIL check, no docs. Apply http://instant-cash-loan.example.xyz/apply",1,loan,1
+"Urgent loan avail kare bina documents ke. Processing fee Rs 2999 pehle jama karna hoga, phir loan turant mil jayega",1,loan,0
+"Your loan of Rs 50,000 is sanctioned. Pay Rs 1,800 insurance charge to release amount today.",1,loan,0
+"Hi, we are a loan app. Download our app http://quickrupee-app.example.xyz/apk and get 20k in ur account instantly, aadhaar + selfie required",1,loan,1
+India Post: ur parcel is held at depot due to incomplete address. Pay Rs 25 redelivery fee at http://indiapost-redeliver.example.xyz/pay,1,delivery,1
+Your package could not be delivered. Update address within 12 hrs to avoid return: http://dhl-track-parcel.example.xyz/addr,1,delivery,1
+"Courier boy ne call kiya tha aapne uthaya nahi. Parcel return ho jayega, confirm ur details here http://bluedart-confirm.example.xyz",1,delivery,1
+FedEx: custom duty of Rs 349 pending on ur shipment. Pay now else shipment will be destroyed,1,delivery,0
+"This is from the Cyber Crime Cell. A parcel in your name has illegal items. You are under digital arrest, stay on video call and do not tell anyone",1,gov_police_impersonation,0
+"Income Tax Dept: refund of Rs 18,640 approved. Verify bank details at http://incometax-refund.example.xyz/claim",1,gov_police_impersonation,1
+TRAI notice: ur mobile number will be disconnected in 2 hrs due to illegal activity complaints. Press 9 to talk to officer,1,gov_police_impersonation,0
+Traffic challan of Rs 500 issued on ur vehicle. Pay immediately to avoid court case http://echallan-pay.example.xyz/v,1,gov_police_impersonation,1
+ALERT: Your phone is infected with 3 viruses! Install cleaner now http://phone-virus-fix.example.xyz/scan,1,tech_support,1
+Microsoft Support: unusual sign-in detected on ur Windows PC. Call the helpline immediately to avoid data loss,1,tech_support,0
+"Your Google account storage is full, photos will be deleted. Upgrade free at http://google-storage-help.example.xyz",1,tech_support,1
+"Hi this is Airtel broadband tech team, ur router needs a remote update. pls download AnyDesk and share the 9 digit code",1,tech_support,0
+"Hi dear, saw ur profile and liked it. Lets chat on telegram, I have something exciting 😘 http://date-with-me.example.xyz",1,other,1
+"I am stuck abroad, lost my wallet. Can you send Rs 8000 urgent? Will return tomorrow. Dont call, network issue",1,other,0
+"Your electricity bill is not paid, power will be cut tonight 9:30 pm. Contact JE immediately on the number below",1,other,0
+"Dear sir, your late relative left property worth 4.5 million USD. Reply with full name and bank details to receive your share",1,other,0
+Your OTP is 482913. Do not share it with anyone. Valid for 10 minutes.,0,benign,0
+"Rs 2,340.00 debited from A/c XX4821 on 02-10-26 at AMAZON PAY. Avl bal Rs 18,225.50. Not you? Call your bank helpline.",0,benign,0
+"Your parcel (AWB 7731904) is out for delivery today. Delivery executive will call you before arriving. Prepaid order, no payment needed.",0,benign,0
+"bro kal ke dinner ka 800 tera hissa mujhe gpay kar dena jab free ho, no hurry",0,benign,0
+"Mom said she'll transfer the fees by evening, will pay the 5k to you after that ok",0,benign,0
+SBI Card: Get 5% cashback on your next grocery spend above Rs 1500 till 31 Oct. T&C apply. Details: http://www.example.com/offers,0,benign,1
+"Dear customer, your electricity bill of Rs 1,120 is generated for Sept. Due date 12 Oct. Pay via the official app or at the nearest office.",0,benign,0
+Reminder: your dental appointment is tomorrow at 11:30 AM. Reply 1 to confirm or 2 to reschedule.,0,benign,0
+Jio: Your plan of Rs 299 expires on 08 Oct. Recharge in time to keep enjoying unlimited calls.,0,benign,0
+Mummy bol rahi thi aaj late aaoge kya? dinner ready rakhu?,0,benign,0
+"Salary credited: Rs 52,300 to A/c XX2210 on 01-Oct. Avl bal Rs 61,480.",0,benign,0
+"Team meeting moved to 4pm, link: http://meet.example.com/standup-weekly",0,benign,1
+"Your IRCTC ticket PNR 4412905 is confirmed. Train 12951 departs 21:40 from Mumbai Central, Coach B2 seat 34.",0,benign,0
+"Thanks for banking with us. Your cheque no 004512 for Rs 7,500 has been cleared.",0,benign,0
+"yaar mujhe 2000 udhaar chahiye, salary aate hi wapas kar dunga, bata de ho sakta hai?",0,benign,0
+Your package from Myntra has been delivered. Hope you like it! Rate your experience at http://www.example.com/rate,0,benign,1
+"Your account statement for Sept is ready. For your security, we never ask for your PIN, OTP or password over call, SMS or email.",0,benign,0
+"719305 is your login code. It expires in 5 mins. Never share this with anyone, including our staff.",0,benign,0
+Rs 450.00 sent to MERCHANT via UPI Ref 5128840912. Not you? Report at your bank branch.,0,benign,0
+Happy birthday bhai!! party kab de raha hai 😄,0,benign,0

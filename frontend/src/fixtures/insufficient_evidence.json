@@ -1,0 +1,74 @@
+{
+  "analysis_id": "fix-insufficient-001",
+  "input_type": "message",
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "risk_score": 35,
+  "category": {
+    "label": "other",
+    "confidence": 0.3
+  },
+  "evidence": [
+    {
+      "id": "ml-text-04",
+      "label": "ML text classifier: uncertain",
+      "weight": 0.4,
+      "source": "ml",
+      "spans": [],
+      "detail": "TF-IDF + logistic regression model assigns 0.45 scam probability — near the decision boundary."
+    },
+    {
+      "id": "rule-ext-link-03",
+      "label": "External link present",
+      "weight": 0.3,
+      "source": "rule",
+      "spans": [
+        { "start": 45, "end": 80, "text": "https://forms.office.com/r/AbC123xYz" }
+      ],
+      "detail": "Message contains an external link. The domain (forms.office.com) is a legitimate Microsoft service, but the form content cannot be verified."
+    }
+  ],
+  "entities": {
+    "urls": ["https://forms.office.com/r/AbC123xYz"],
+    "phones": [],
+    "emails": ["hr@company-example.com"],
+    "upi_ids": []
+  },
+  "url_results": [
+    {
+      "url": "https://forms.office.com/r/AbC123xYz",
+      "ml_risk": 0.18,
+      "features": {
+        "length": 36,
+        "subdomain_count": 1,
+        "digit_ratio": 0.08,
+        "has_https": true,
+        "tld": ".com",
+        "entropy": 3.55
+      },
+      "intel": {
+        "status": "unavailable",
+        "provider": "openphish"
+      }
+    }
+  ],
+  "ocr": null,
+  "explanation": "We could not confidently determine whether this message is safe or harmful. The ML classifier is uncertain (near its decision boundary), and while the link points to a legitimate Microsoft Forms domain, the actual form content cannot be verified remotely. Threat-intelligence feeds were unavailable during this check. If you were not expecting this message, exercise caution.",
+  "next_steps": [
+    "If you recognise the sender (hr@company-example.com), it may be legitimate — verify by contacting them through a known channel.",
+    "If this is unexpected, do NOT fill in the form or provide personal information.",
+    "Check with your organisation's IT department if this relates to work.",
+    "If in doubt, report at https://cybercrime.gov.in or call 1930."
+  ],
+  "citations": [
+    {
+      "source": "mha_social_media_safety.pdf",
+      "title": "Be Careful While Using Social Media Platforms",
+      "page": 5,
+      "snippet": "Do not fill in online forms from unknown sources. Verify the sender through an independent channel before sharing any personal information.",
+      "url": "https://cybercrime.gov.in/"
+    }
+  ],
+  "limitations": "This analysis is automated. Threat-intelligence feeds were unavailable during this check, which means we cannot confirm or deny whether the URL has been reported elsewhere. The 'insufficient evidence' verdict means the system lacks enough signals for a confident classification — it is NOT a statement of safety.",
+  "model_version": "0.1.0",
+  "created_at": "2026-10-03T14:15:00Z"
+}

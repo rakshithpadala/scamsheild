@@ -1,0 +1,106 @@
+{
+  "analysis_id": "fix-suspicious-001",
+  "input_type": "message",
+  "verdict": "SUSPICIOUS",
+  "risk_score": 72,
+  "category": {
+    "label": "cashback_reward_lottery",
+    "confidence": 0.78
+  },
+  "evidence": [
+    {
+      "id": "rule-prize-01",
+      "label": "Prize / lottery / cashback lure",
+      "weight": 0.85,
+      "source": "rule",
+      "spans": [
+        { "start": 0, "end": 48, "text": "Congratulations! You have won ₹50,000 cashback" }
+      ],
+      "detail": "Unsolicited prize/cashback claims are a hallmark of lottery scams."
+    },
+    {
+      "id": "rule-fee-01",
+      "label": "Fee / advance payment request",
+      "weight": 0.75,
+      "source": "rule",
+      "spans": [
+        { "start": 112, "end": 158, "text": "pay a processing fee of ₹499 to claim your reward" }
+      ],
+      "detail": "Requesting upfront payment to release a 'prize' is a classic advance-fee scam pattern."
+    },
+    {
+      "id": "rule-ext-link-02",
+      "label": "External / shortened link",
+      "weight": 0.5,
+      "source": "rule",
+      "spans": [
+        { "start": 165, "end": 200, "text": "https://rewards-paytm-claim.xyz/win" }
+      ],
+      "detail": "Link uses a suspicious domain mimicking a known brand."
+    },
+    {
+      "id": "rule-brand-01",
+      "label": "Brand impersonation",
+      "weight": 0.65,
+      "source": "rule",
+      "spans": [
+        { "start": 52, "end": 58, "text": "Paytm" }
+      ],
+      "detail": "Mentions Paytm but sent from an unverified source."
+    },
+    {
+      "id": "ml-text-02",
+      "label": "ML text classifier: scam",
+      "weight": 0.72,
+      "source": "ml",
+      "spans": [],
+      "detail": "TF-IDF + logistic regression model assigns 0.79 scam probability."
+    }
+  ],
+  "entities": {
+    "urls": ["https://rewards-paytm-claim.xyz/win"],
+    "phones": [],
+    "emails": [],
+    "upi_ids": ["cashback@ybl"]
+  },
+  "url_results": [
+    {
+      "url": "https://rewards-paytm-claim.xyz/win",
+      "ml_risk": 0.74,
+      "features": {
+        "length": 34,
+        "subdomain_count": 0,
+        "digit_ratio": 0.0,
+        "has_https": true,
+        "suspicious_tokens": ["reward", "claim", "win"],
+        "tld": ".xyz",
+        "entropy": 3.85
+      },
+      "intel": {
+        "status": "no_match",
+        "provider": "openphish"
+      }
+    }
+  ],
+  "ocr": null,
+  "explanation": "This message has characteristics commonly associated with cashback and lottery scams in India. It offers an unsolicited ₹50,000 cashback supposedly from Paytm, then asks for a ₹499 'processing fee' — a classic advance-fee pattern. The link uses a .xyz domain that mimics Paytm but is not affiliated with the company. While the URL was not found in current threat-intelligence feeds, multiple rule-based and ML signals flag it as suspicious.",
+  "next_steps": [
+    "Do NOT pay any 'processing fee' or share personal details.",
+    "Do NOT click the link — it is not an official Paytm domain.",
+    "Verify directly: open the official Paytm app or visit paytm.com to check for any real offers.",
+    "Report: call 1930 (Cyber Crime Helpline) or file a complaint at https://cybercrime.gov.in",
+    "Block the sender."
+  ],
+  "citations": [
+    {
+      "source": "maharashtra_cyber_awareness.pdf",
+      "title": "Cyber Security Awareness for Citizens",
+      "page": 12,
+      "snippet": "Beware of fake cashback and lottery messages. No legitimate company asks you to pay a fee to receive a prize.",
+      "url": "https://cybercrime.gov.in/"
+    }
+  ],
+  "limitations": "This analysis is automated and may not capture every nuance. The URL was not found in current threat-intelligence feeds, but this does not confirm it is safe. Always verify offers directly with the official company.",
+  "model_version": "0.1.0",
+  "created_at": "2026-10-03T14:05:00Z"
+}

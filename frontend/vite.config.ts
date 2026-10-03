@@ -30,6 +30,14 @@ export default defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
       },
+      "/ocr": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/demo_screenshots": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
     },
   },
-});
+});

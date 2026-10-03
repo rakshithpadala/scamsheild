@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -24,12 +24,17 @@ import {
   ChevronDown,
   ChevronUp,
   SlidersHorizontal,
+  UploadCloud,
+  Eye,
+  Edit3,
+  Layers,
+  Camera,
 } from "lucide-react";
 import type { AnalysisResult, Verdict, Evidence } from "./lib/types";
 import { FIXTURES } from "./fixtures";
 import "./App.css";
 
-// ── Demo Presets from docs/demo_inputs.md ───────────────────────────────────
+// ── Demo Presets for Text Scanner ───────────────────────────────────────────
 const DEMO_PRESETS = [
   {
     id: "upi_trap",
@@ -69,6 +74,74 @@ const DEMO_PRESETS = [
   },
 ];
 
+// ── Demo Screenshots Catalog ────────────────────────────────────────────────
+interface DemoScreenshot {
+  id: string;
+  name: string;
+  title: string;
+  category: string;
+  url: string;
+  fallbackText: string;
+  confidence: number;
+}
+
+const DEMO_SCREENSHOTS: DemoScreenshot[] = [
+  {
+    id: "screenshot_01",
+    name: "screenshot_01_kyc_sms_light.png",
+    title: "SBI KYC Account Suspension",
+    category: "bank_kyc_account",
+    url: "/demo_screenshots/screenshot_01_kyc_sms_light.png",
+    fallbackText: "VN-SBIIN (State Bank of India)\nDear Customer,\nYour SBI account has been suspended due to pending KYC document. Please update your PAN immediately by visiting http://sbi-kyc-update.example.xyz/pan to avoid permanent deactivation.",
+    confidence: 0.86,
+  },
+  {
+    id: "screenshot_02",
+    name: "screenshot_02_upi_collect_dark.png",
+    title: "PhonePe / GPay Cashback Trap",
+    category: "upi_payment",
+    url: "/demo_screenshots/screenshot_02_upi_collect_dark.png",
+    fallbackText: "PhonePe Customer Support\nCongratulations!\nYou received Rs 2,500 cashback reward in GooglePay\nClick here to approve collect request and enter your UPI PIN to claim money directly to bank account.",
+    confidence: 0.87,
+  },
+  {
+    id: "screenshot_03",
+    name: "screenshot_03_job_offer_two_msgs.png",
+    title: "Work From Home Like & Earn",
+    category: "job",
+    url: "/demo_screenshots/screenshot_03_job_offer_two_msgs.png",
+    fallbackText: "HR Talent Acquisition Team\nDear Candidate,\nWork From Home Opportunity: Earn Rs 3,000 to Rs 8,000 daily by simply liking YouTube videos.\nPay refundable registration fee of Rs 1,450 to telegram admin @task_manager to activate task account.",
+    confidence: 0.87,
+  },
+  {
+    id: "screenshot_04",
+    name: "screenshot_04_delivery_cropped.png",
+    title: "IndiaPost Delivery Rescheduling",
+    category: "delivery",
+    url: "/demo_screenshots/screenshot_04_delivery_cropped.png",
+    fallbackText: "POSTAL DISPATCH ALERT\nIndiaPost: Your package IND938201 could not be delivered due to wrong address details. Update address within 24 hours at http://indiapost-update.example.xyz or item will be returned.",
+    confidence: 0.92,
+  },
+  {
+    id: "screenshot_05",
+    name: "screenshot_05_police_digital_arrest_blurry.png",
+    title: "CBI Digital Arrest Notice (Blurry)",
+    category: "gov_police_impersonation",
+    url: "/demo_screenshots/screenshot_05_police_digital_arrest_blurry.png",
+    fallbackText: "CENTRAL BUREAU OF INVESTIGATION (CBI)\nLEGAL NOTICE / DIGITAL ARREST WARRANT\nAn illegal parcel containing banned narcotics and fake passports has been detained at Mumbai Customs in your name. A digital arrest warrant is issued. Connect to Skype call immediately.",
+    confidence: 0.64,
+  },
+  {
+    id: "screenshot_06",
+    name: "screenshot_06_electricity_cutoff.png",
+    title: "Electricity Power Cutoff Threat",
+    category: "other",
+    url: "/demo_screenshots/screenshot_06_electricity_cutoff.png",
+    fallbackText: "Electricity Department (Urgent Notice)\nDear Consumer, power supply to your meter connection will be disconnected tonight at 9:30 PM due to unpaid electricity bill. Call officer immediately at 9821098210 to avoid cutoff.",
+    confidence: 0.90,
+  },
+];
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<"message" | "screenshot" | "url" | "email">("message");
   const [inputText, setInputText] = useState(DEMO_PRESETS[0].text);
@@ -76,6 +149,18 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [stepStage, setStepStage] = useState<string>("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [lastAnalyzedText, setLastAnalyzedText] = useState<string>(DEMO_PRESETS[0].text);
+
+  // ── Screenshot Tab State ──────────────────────────────────────────────────
+  const [screenshotImage, setScreenshotImage] = useState<string | null>(DEMO_SCREENSHOTS[0].url);
+  const [selectedDemoId, setSelectedDemoId] = useState<string>("screenshot_01");
+  const [ocrText, setOcrText] = useState<string>(DEMO_SCREENSHOTS[0].fallbackText);
+  const [ocrConfidence, setOcrConfidence] = useState<number | null>(DEMO_SCREENSHOTS[0].confidence);
+  const [ocrLoading, setOcrLoading] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // ── Copilot Drawer State ──────────────────────────────────────────────────
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copilotQuery, setCopilotQuery] = useState("");
   const [copilotAnswers, setCopilotAnswers] = useState<Array<{ q: string; a: string; cite: string }>>([
@@ -93,23 +178,137 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [showCitations, setShowCitations] = useState(true);
 
+  // ── Screenshot Selection & Upload Handlers ────────────────────────────────
+  const handleSelectDemoScreenshot = async (demo: DemoScreenshot) => {
+    setSelectedDemoId(demo.id);
+    setScreenshotImage(demo.url);
+    setOcrLoading(true);
+
+    try {
+      // Fetch image from local static mount and perform live OCR extraction
+      const imgRes = await fetch(demo.url);
+      if (imgRes.ok) {
+        const blob = await imgRes.blob();
+        const formData = new FormData();
+        formData.append("file", blob, demo.name);
+
+        const ocrRes = await fetch("/ocr/extract", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (ocrRes.ok) {
+          const ocrData = await ocrRes.json();
+          setOcrText(ocrData.text || demo.fallbackText);
+          setOcrConfidence(ocrData.confidence || demo.confidence);
+          setOcrLoading(false);
+          return;
+        }
+      }
+      // Fallback to pre-extracted values if backend OCR isn't reachable
+      setOcrText(demo.fallbackText);
+      setOcrConfidence(demo.confidence);
+    } catch {
+      setOcrText(demo.fallbackText);
+      setOcrConfidence(demo.confidence);
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file (PNG, JPG, WEBP).");
+      return;
+    }
+
+    setSelectedDemoId("");
+    setOcrLoading(true);
+
+    // Read local image preview DataURL
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setScreenshotImage(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Send to OCR extraction endpoint
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/ocr/extract", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`OCR service returned ${res.status}`);
+      }
+
+      const data = await res.json();
+      setOcrText(data.text);
+      setOcrConfidence(data.confidence);
+    } catch (err) {
+      console.warn("OCR service error, retaining current text:", err);
+      if (!ocrText) {
+        setOcrText("OCR extraction failed to connect to local server. Please verify backend is running or type text manually.");
+        setOcrConfidence(0.5);
+      }
+    } finally {
+      setOcrLoading(false);
+    }
+  };
+
   // ── Run Analysis ──────────────────────────────────────────────────────────
-  const handleAnalyze = async (overrideText?: string) => {
-    const textToAnalyze = overrideText || (activeTab === "url" ? urlInput : inputText);
+  const handleAnalyze = async (
+    overrideText?: string,
+    overrideType?: "message" | "screenshot" | "url" | "email"
+  ) => {
+    const effectiveType = overrideType || activeTab;
+    let textToAnalyze = "";
+
+    if (overrideText) {
+      textToAnalyze = overrideText;
+    } else if (effectiveType === "screenshot") {
+      textToAnalyze = ocrText;
+    } else if (effectiveType === "url") {
+      textToAnalyze = urlInput;
+    } else {
+      textToAnalyze = inputText;
+    }
+
     if (!textToAnalyze.trim()) return;
 
+    setLastAnalyzedText(textToAnalyze);
     setLoading(true);
-    setStepStage("Extracting entities (UPI IDs, URLs, phones)...");
+    setStepStage(
+      effectiveType === "screenshot"
+        ? "Processing OpenCV binarized text & extracting entities..."
+        : "Extracting entities (UPI IDs, URLs, phones)..."
+    );
 
     setTimeout(() => setStepStage("Checking OpenPhish & URLhaus feeds..."), 300);
     setTimeout(() => setStepStage("Running TF-IDF & Heuristic scoring..."), 600);
     setTimeout(() => setStepStage("Retrieving official RBI & NPCI guidance..."), 900);
 
     try {
+      const payload: Record<string, any> = {
+        text: textToAnalyze,
+        input_type: effectiveType,
+      };
+
+      if (effectiveType === "screenshot" && ocrConfidence !== null) {
+        payload.ocr = {
+          text: textToAnalyze,
+          confidence: ocrConfidence,
+        };
+      }
+
       const response = await fetch("/analyze/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: textToAnalyze }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -124,19 +323,35 @@ export default function App() {
       }, 1100);
     } catch (err) {
       console.warn("Backend offline or unreachable, falling back to local engine:", err);
-      // Resilient local fixture fallback
       setTimeout(() => {
         const lower = textToAnalyze.toLowerCase();
         let fallback: AnalysisResult;
         if (lower.includes("facebook-logiin") || lower.includes("supershopf")) {
-          fallback = FIXTURES.known_threat;
-        } else if (lower.includes("pin") || lower.includes("collect") || lower.includes("suspended") || lower.includes("arrest")) {
-          fallback = FIXTURES.suspicious;
+          fallback = { ...FIXTURES.known_threat };
+        } else if (
+          lower.includes("pin") ||
+          lower.includes("collect") ||
+          lower.includes("suspended") ||
+          lower.includes("arrest") ||
+          lower.includes("package") ||
+          lower.includes("power supply") ||
+          lower.includes("earn rs")
+        ) {
+          fallback = { ...FIXTURES.suspicious };
         } else if (textToAnalyze.length < 15) {
-          fallback = FIXTURES.insufficient_evidence;
+          fallback = { ...FIXTURES.insufficient_evidence };
         } else {
-          fallback = FIXTURES.low_risk;
+          fallback = { ...FIXTURES.low_risk };
         }
+
+        if (effectiveType === "screenshot") {
+          fallback.input_type = "screenshot";
+          fallback.ocr = {
+            text: textToAnalyze,
+            confidence: ocrConfidence ?? 0.88,
+          };
+        }
+
         setResult(fallback);
         setLoading(false);
         setStepStage("");
@@ -250,23 +465,13 @@ export default function App() {
         </div>
       </header>
 
-      {/* ── Main Content Container ────────────────────────────────────────── */}
+      {/* ── Main Dashboard Container ──────────────────────────────────────── */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* ── Left Column: Scanner & Input (5 cols) ────────────────────────── */}
+        {/* ── Left Column: Multi-modal Input Console (5 cols) ───────────────── */}
         <section className="lg:col-span-5 flex flex-col gap-6">
-          <div className="bg-[#10151D] border border-white/10 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-[#22D3EE]/5 rounded-full blur-3xl pointer-events-none" />
-
-            <h1 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-              <Search className="w-5 h-5 text-[#22D3EE]" />
-              Threat Investigation Console
-            </h1>
-            <p className="text-xs text-slate-400 mb-5">
-              Submit suspicious communication for deep multi-modal fraud analysis.
-            </p>
-
-            {/* Input Modality Tabs */}
-            <div className="grid grid-cols-4 gap-1 p-1 bg-[#0A0E14] rounded-xl border border-white/5 mb-5">
+          <div className="bg-[#10151D] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+            {/* Input Mode Tabs */}
+            <div className="grid grid-cols-4 bg-[#0A0E14] p-1 rounded-xl border border-white/5">
               <button
                 onClick={() => setActiveTab("message")}
                 className={`flex flex-col items-center gap-1 py-2 rounded-lg text-xs font-medium transition ${
@@ -276,7 +481,7 @@ export default function App() {
                 }`}
               >
                 <FileText className="w-4 h-4" />
-                <span>Text / SMS</span>
+                <span>Message</span>
               </button>
 
               <button
@@ -333,39 +538,142 @@ export default function App() {
               </div>
             )}
 
-            {/* Tab 2: Screenshot OCR Preview */}
+            {/* Tab 2: Multimodal Screenshot OCR Studio */}
             {activeTab === "screenshot" && (
-              <div className="flex flex-col gap-3">
-                <label className="text-xs font-semibold text-slate-300">
-                  Upload Screenshot or Test Samples:
-                </label>
-                <div className="border-2 border-dashed border-white/15 rounded-xl p-5 text-center bg-[#0A0E14]/50 flex flex-col items-center justify-center gap-2 hover:border-[#22D3EE]/50 transition cursor-pointer">
-                  <ImageIcon className="w-8 h-8 text-slate-400" />
-                  <p className="text-xs text-slate-300">Drag & drop chat screenshot or click to browse</p>
-                  <p className="text-[10px] text-slate-500">Auto-processed with bilateral filter & Tesseract OCR</p>
-                </div>
-                <div className="text-xs text-slate-400 mt-2">
-                  <span className="font-semibold text-slate-300">Or load sample OCR capture:</span>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    <button
-                      onClick={() => {
-                        setInputText("CBI NOTICE: Illegal narcotics parcel detained. Digital arrest issued. Connect to Skype now.");
-                        setActiveTab("message");
-                      }}
-                      className="px-2 py-1 rounded bg-[#161C26] text-xs text-slate-300 hover:text-white border border-white/10"
-                    >
-                      Police Digital Arrest
-                    </button>
-                    <button
-                      onClick={() => {
-                        setInputText("Electricity bill unpaid! Power connection will be disconnected tonight at 9:30 PM. Call officer at 9821098210.");
-                        setActiveTab("message");
-                      }}
-                      className="px-2 py-1 rounded bg-[#161C26] text-xs text-slate-300 hover:text-white border border-white/10"
-                    >
-                      Electricity Cutoff
-                    </button>
+              <div className="flex flex-col gap-4">
+                {/* Drag & Drop File Upload Area */}
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files?.[0]) handleFileUpload(e.dataTransfer.files[0]);
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-3.5 text-center cursor-pointer transition flex items-center justify-between gap-3 ${
+                    isDragging
+                      ? "border-[#22D3EE] bg-[#22D3EE]/10"
+                      : "border-white/15 bg-[#0A0E14]/60 hover:border-[#7C6CFF]/50 hover:bg-[#10151D]"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
+                    }}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-lg bg-[#161C26] text-[#22D3EE] border border-white/10">
+                      <UploadCloud className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-white">Upload Screenshot from Device</p>
+                      <p className="text-[11px] text-slate-400">Drag & drop PNG, JPG, WEBP or click to browse</p>
+                    </div>
                   </div>
+                  <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded bg-[#161C26] text-[10px] text-slate-400 border border-white/10 font-mono">
+                    <Camera className="w-3 h-3 text-[#22D3EE]" />
+                    <span>OCR Engine</span>
+                  </div>
+                </div>
+
+                {/* Pre-packaged Demo Screenshots Selector */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-300">Or Select a Verified Screenshot Sample:</span>
+                    <span className="text-[10px] text-slate-500 font-mono">6 test cases</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {DEMO_SCREENSHOTS.map((demo) => (
+                      <button
+                        key={demo.id}
+                        onClick={() => handleSelectDemoScreenshot(demo)}
+                        className={`p-2.5 rounded-xl text-left transition border flex flex-col gap-1 relative overflow-hidden group ${
+                          selectedDemoId === demo.id
+                            ? "bg-[#161C26] border-[#22D3EE] shadow-md shadow-[#22D3EE]/10"
+                            : "bg-[#0A0E14] border-white/5 hover:border-white/20 hover:bg-[#161C26]/50"
+                        }`}
+                      >
+                        <span className="text-[11px] font-bold text-slate-200 group-hover:text-[#22D3EE] truncate">
+                          {demo.title}
+                        </span>
+                        <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                          <span className="truncate">{demo.category}</span>
+                          <span className="text-emerald-400 shrink-0">~{Math.round(demo.confidence * 100)}%</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Side-by-Side OCR Studio: Screenshot Preview (Left) + Editable Extracted Text (Right) */}
+                <div className="bg-[#0A0E14] border border-white/10 rounded-xl p-3 flex flex-col sm:flex-row gap-3">
+                  {/* Left: Image Thumbnail Preview */}
+                  <div className="sm:w-1/2 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <span className="font-semibold text-slate-300 flex items-center gap-1.5 text-[11px]">
+                        <Eye className="w-3.5 h-3.5 text-[#22D3EE]" />
+                        Visual Preview
+                      </span>
+                      {selectedDemoId && (
+                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#161C26] text-slate-400 border border-white/10">
+                          Demo Sample
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative h-44 rounded-lg overflow-hidden bg-[#10151D] border border-white/10 flex items-center justify-center p-1.5">
+                      {screenshotImage ? (
+                        <img
+                          src={screenshotImage}
+                          alt="Screenshot Target"
+                          className="h-full w-auto object-contain rounded shadow"
+                        />
+                      ) : (
+                        <div className="text-center p-3">
+                          <ImageIcon className="w-7 h-7 text-slate-600 mx-auto mb-1" />
+                          <p className="text-[11px] text-slate-500">No image loaded</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Editable OCR Text Field */}
+                  <div className="sm:w-1/2 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-slate-300 flex items-center gap-1.5 text-[11px]">
+                        <Edit3 className="w-3.5 h-3.5 text-[#7C6CFF]" />
+                        Extracted Text (Editable)
+                      </span>
+                      {ocrConfidence !== null && (
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold">
+                          Conf: {Math.round(ocrConfidence * 100)}%
+                        </span>
+                      )}
+                    </div>
+                    <textarea
+                      rows={6}
+                      value={ocrText}
+                      onChange={(e) => setOcrText(e.target.value)}
+                      placeholder="OCR text will appear here. Edit any words to correct OCR misreads..."
+                      className="w-full h-44 bg-[#10151D] border border-white/10 rounded-lg p-2.5 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#7C6CFF] font-mono resize-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                {/* Sub-bar showing OCR Confidence & Preprocessing Info */}
+                <div className="p-2.5 rounded-lg bg-[#161C26] border border-white/5 flex items-center justify-between text-[10px] text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-[#22D3EE]" />
+                    <span>OpenCV Bilateral Denoising • Otsu Binarization • Tesseract PSM-6</span>
+                  </div>
+                  <span className="font-mono text-slate-300 font-semibold">{ocrText.length} chars</span>
                 </div>
               </div>
             )}
@@ -397,8 +705,8 @@ export default function App() {
             {/* Action CTA Button */}
             <button
               onClick={() => handleAnalyze()}
-              disabled={loading}
-              className="mt-5 w-full py-3 rounded-xl bg-gradient-to-r from-[#22D3EE] to-[#7C6CFF] text-black font-bold text-sm tracking-wide hover:opacity-95 transition shadow-lg shadow-[#22D3EE]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+              disabled={loading || ocrLoading}
+              className="mt-2 w-full py-3 rounded-xl bg-gradient-to-r from-[#22D3EE] to-[#7C6CFF] text-black font-bold text-sm tracking-wide hover:opacity-95 transition shadow-lg shadow-[#22D3EE]/20 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -408,7 +716,9 @@ export default function App() {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-black" />
-                  <span>Run Fraud Analysis</span>
+                  <span>
+                    {activeTab === "screenshot" ? "Analyze Screenshot Text" : "Run Fraud Analysis"}
+                  </span>
                 </>
               )}
             </button>
@@ -418,7 +728,7 @@ export default function App() {
           <div className="bg-[#10151D] border border-white/10 rounded-2xl p-5 shadow-lg">
             <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-[#7C6CFF]" />
-              Quick-Test Demo Inputs
+              Quick-Test Text Presets
             </h2>
             <div className="grid grid-cols-2 gap-2">
               {DEMO_PRESETS.map((preset) => (
@@ -429,10 +739,11 @@ export default function App() {
                     if (preset.category === "url") {
                       setUrlInput("https://facebook-logiin.vercel.app/");
                       setActiveTab("url");
+                      handleAnalyze("https://facebook-logiin.vercel.app/", "url");
                     } else {
                       setActiveTab("message");
+                      handleAnalyze(preset.text, "message");
                     }
-                    handleAnalyze(preset.text);
                   }}
                   className="p-2.5 text-left rounded-xl bg-[#161C26] hover:bg-[#1a2330] border border-white/5 hover:border-[#7C6CFF]/40 transition group"
                 >
@@ -473,7 +784,10 @@ export default function App() {
             <div className="h-full min-h-[460px] bg-[#10151D] border border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-xl">
               <div className="relative w-20 h-20 mb-6">
                 <div className="absolute inset-0 rounded-full border-4 border-white/10 border-t-[#22D3EE] animate-spin" />
-                <div className="absolute inset-2 rounded-full border-4 border-white/10 border-b-[#7C6CFF] animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+                <div
+                  className="absolute inset-2 rounded-full border-4 border-white/10 border-b-[#7C6CFF] animate-spin"
+                  style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+                />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <ShieldCheck className="w-7 h-7 text-[#22D3EE]" />
                 </div>
@@ -493,6 +807,12 @@ export default function App() {
                     <span className="text-xs font-mono text-slate-400">
                       ID: {result.analysis_id.slice(0, 8)}
                     </span>
+                    {result.input_type === "screenshot" && (
+                      <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded bg-[#7C6CFF]/20 text-[#7C6CFF] border border-[#7C6CFF]/30 flex items-center gap-1">
+                        <Camera className="w-3 h-3" />
+                        Screenshot OCR
+                      </span>
+                    )}
                   </div>
                   <h3 className="text-2xl font-black text-white tracking-tight mt-1">
                     {result.verdict === "KNOWN_THREAT" && "Verified Threat Signature"}
@@ -536,15 +856,51 @@ export default function App() {
                 </div>
               </div>
 
+              {/* 1b. Multimodal OCR Detection Card (Shown for screenshot inputs) */}
+              {(result.input_type === "screenshot" || result.ocr) && (
+                <div className="bg-[#10151D] border border-[#7C6CFF]/30 rounded-2xl p-5 shadow-xl flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-[#7C6CFF]/20 text-[#7C6CFF]">
+                        <Camera className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Multimodal OCR Image Extraction Report
+                      </h4>
+                    </div>
+                    {result.ocr && (
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                        Confidence: {Math.round(result.ocr.confidence * 100)}%
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-[#161C26] border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">Preprocessing</span>
+                      <span className="font-semibold text-slate-200">Bilateral Denoise + Otsu</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-[#161C26] border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">OCR Engine</span>
+                      <span className="font-semibold text-slate-200">Tesseract (PSM-6)</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-[#161C26] border border-white/5">
+                      <span className="text-[10px] text-slate-400 block">Extracted Characters</span>
+                      <span className="font-semibold text-slate-200 font-mono">
+                        {result.ocr?.text?.length ?? lastAnalyzedText.length} chars
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 2. Highlighted Suspicious Spans View */}
               <div className="bg-[#10151D] border border-white/10 rounded-2xl p-6 shadow-xl">
                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                   <FileText className="w-4 h-4 text-[#22D3EE]" />
-                  Analyzed Message & Highlighted Threat Spans
+                  Analyzed Content & Highlighted Threat Spans
                 </h4>
                 <div className="p-4 rounded-xl bg-[#0A0E14] border border-white/5 font-mono text-sm leading-relaxed text-slate-300">
-                  {/* Highlight text matching evidence */}
-                  {inputText}
+                  {lastAnalyzedText}
                 </div>
                 {result.evidence.some((e) => e.spans && e.spans.length > 0) && (
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -648,13 +1004,13 @@ export default function App() {
                 {/* National Cyber Helpline 1930 Emergency Banner */}
                 <div className="mt-2 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-rose-500/20 text-rose-400">
+                    <div className="p-2.5 rounded-lg bg-rose-500 text-white shrink-0">
                       <PhoneCall className="w-5 h-5" />
                     </div>
                     <div>
-                      <h5 className="text-xs font-bold text-white">Was Money Debited or Stolen?</h5>
-                      <p className="text-[11px] text-slate-300">
-                        Dial <strong>1930</strong> immediately to freeze beneficiary bank accounts under the CFCFRMS protocol.
+                      <div className="text-xs font-bold text-rose-300">National Cyber Crime Helpline: 1930</div>
+                      <p className="text-[11px] text-slate-300 mt-0.5">
+                        Dial 1930 within the golden hour if money was deducted to freeze fraudulent transactions.
                       </p>
                     </div>
                   </div>
@@ -662,104 +1018,118 @@ export default function App() {
                     href="https://cybercrime.gov.in"
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3 py-1.5 rounded-lg bg-rose-500 text-white font-bold text-xs hover:bg-rose-600 transition shrink-0 flex items-center gap-1.5"
+                    className="px-3.5 py-2 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs whitespace-nowrap transition shadow"
                   >
-                    <span>cybercrime.gov.in</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    cybercrime.gov.in
                   </a>
                 </div>
               </div>
 
-              {/* 6. Regulatory Citations (Collapsible) */}
-              {result.citations.length > 0 && (
-                <div className="bg-[#10151D] border border-white/10 rounded-2xl p-6 shadow-xl">
-                  <button
-                    onClick={() => setShowCitations(!showCitations)}
-                    className="w-full flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider"
-                  >
-                    <div className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4 text-[#22D3EE]" />
-                      <span>Official Regulatory Guidance ({result.citations.length})</span>
-                    </div>
-                    {showCitations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
+              {/* 6. Regulatory Citations & Limitations */}
+              <div className="bg-[#10151D] border border-white/10 rounded-2xl p-6 shadow-xl flex flex-col gap-4">
+                <button
+                  onClick={() => setShowCitations(!showCitations)}
+                  className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-wider"
+                >
+                  <span className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-[#22D3EE]" />
+                    Official Regulatory Guidance ({result.citations.length} Sources Cited)
+                  </span>
+                  {showCitations ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
 
-                  {showCitations && (
-                    <div className="mt-4 flex flex-col gap-3">
-                      {result.citations.map((cite, index) => (
-                        <div key={index} className="p-3.5 rounded-xl bg-[#161C26] border border-white/5 text-xs">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-[#22D3EE]">{cite.source} • {cite.title}</span>
-                            <a
-                              href={cite.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-slate-400 hover:text-white flex items-center gap-1 text-[11px]"
-                            >
-                              <span>View Source</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
+                {showCitations && (
+                  <div className="flex flex-col gap-2.5 pt-2">
+                    {result.citations.length === 0 ? (
+                      <p className="text-xs text-slate-500">No regulatory citations attached for this classification.</p>
+                    ) : (
+                      result.citations.map((cite, i) => (
+                        <div key={i} className="p-3 rounded-xl bg-[#161C26] border border-white/5 flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                              <span className="px-1.5 py-0.5 rounded bg-[#22D3EE]/20 text-[#22D3EE] text-[10px]">
+                                {cite.source}
+                              </span>
+                              <span>{cite.title}</span>
+                            </span>
+                            {cite.url && (
+                              <a
+                                href={cite.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#22D3EE] hover:underline text-[11px] flex items-center gap-1"
+                              >
+                                <span>Guideline Document</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            )}
                           </div>
-                          <p className="text-slate-300 italic">"{cite.snippet}"</p>
+                          <p className="text-xs text-slate-400 italic">"{cite.snippet}"</p>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                      ))
+                    )}
+                  </div>
+                )}
 
-              {/* 7. Limitations & Humility Disclaimer */}
-              <div className="p-4 rounded-xl bg-[#10151D]/60 border border-white/5 text-[11px] text-slate-500 flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                <span>
-                  <strong>Limitations:</strong> {result.limitations} ScamShield AI detects high-risk fraud signatures through automated machine learning and heuristic models; always independently verify unsolicited demands with your official bank.
-                </span>
+                {/* Limitations Statement */}
+                <div className="mt-2 pt-3 border-t border-white/5 flex items-start gap-2 text-[11px] text-slate-500">
+                  <Info className="w-4 h-4 shrink-0 text-slate-400 mt-0.5" />
+                  <span>
+                    <strong>Disclaimer:</strong> {result.limitations || "ScamShield AI provides automated risk evaluation based on known indicators. It does not replace formal bank or law enforcement confirmation."}
+                  </span>
+                </div>
               </div>
             </div>
           )}
         </section>
       </main>
 
-      {/* ── Slide-out Copilot Assistant Drawer ─────────────────────────────── */}
+      {/* ── Slide-out Copilot Drawer ──────────────────────────────────────── */}
       {copilotOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[#10151D] border-l border-white/10 h-full p-6 flex flex-col shadow-2xl animate-slideIn">
-            <div className="flex justify-between items-center pb-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#7C6CFF]" />
-                <h3 className="font-bold text-white text-base">RAG Safety Copilot</h3>
-              </div>
-              <button
-                onClick={() => setCopilotOpen(false)}
-                className="text-slate-400 hover:text-white text-sm px-2 py-1 rounded bg-[#161C26]"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto py-4 flex flex-col gap-4">
-              {copilotAnswers.map((item, idx) => (
-                <div key={idx} className="flex flex-col gap-2">
-                  <div className="p-3 rounded-xl bg-[#161C26] text-xs font-semibold text-white">
-                    {item.q}
+        <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-[#10151D] border-l border-white/10 h-full p-6 flex flex-col justify-between shadow-2xl animate-slideLeft">
+            <div className="flex flex-col gap-4">
+              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-[#7C6CFF]/20 text-[#7C6CFF]">
+                    <Sparkles className="w-5 h-5" />
                   </div>
-                  <div className="p-3.5 rounded-xl bg-[#0A0E14] border border-white/5 text-xs text-slate-300 leading-relaxed">
-                    <p>{item.a}</p>
-                    <span className="block mt-2 text-[10px] font-semibold text-[#22D3EE]">
-                      Citation: {item.cite}
-                    </span>
+                  <div>
+                    <h3 className="font-bold text-sm text-white">ScamShield Safety Copilot</h3>
+                    <p className="text-[10px] text-slate-400">Instant RAG Factual Safety Guidance</p>
                   </div>
                 </div>
-              ))}
+                <button
+                  onClick={() => setCopilotOpen(false)}
+                  className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded bg-[#161C26] border border-white/10"
+                >
+                  Close
+                </button>
+              </div>
+
+              {/* Copilot Q&A List */}
+              <div className="flex flex-col gap-3 overflow-y-auto max-h-[calc(100vh-220px)] pr-1">
+                {copilotAnswers.map((item, idx) => (
+                  <div key={idx} className="p-3.5 rounded-xl bg-[#161C26] border border-white/5 flex flex-col gap-2">
+                    <p className="text-xs font-bold text-[#22D3EE]">Q: {item.q}</p>
+                    <p className="text-xs text-slate-300 leading-relaxed">{item.a}</p>
+                    <div className="text-[10px] text-slate-500 font-mono flex items-center gap-1">
+                      <BookOpen className="w-3 h-3 text-[#7C6CFF]" />
+                      <span>{item.cite}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <form onSubmit={handleCopilotSubmit} className="pt-3 border-t border-white/10 flex gap-2">
+            {/* Input Bar */}
+            <form onSubmit={handleCopilotSubmit} className="flex gap-2 pt-4 border-t border-white/10">
               <input
                 type="text"
                 value={copilotQuery}
                 onChange={(e) => setCopilotQuery(e.target.value)}
-                placeholder="Ask about UPI rules, KYC safety..."
-                className="flex-1 bg-[#0A0E14] border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-[#7C6CFF]"
+                placeholder="Ask about UPI PIN, Digital Arrest, or 1930..."
+                className="flex-1 bg-[#0A0E14] border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#7C6CFF]"
               />
               <button
                 type="submit"

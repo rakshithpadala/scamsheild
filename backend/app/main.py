@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.health import router as health_router
 from backend.app.db.base import init_db
+from backend.app.ml.text_classifier import get_binary_classifier, get_category_classifier
 from backend.app.schemas import (
     AnalysisResult,
     Category,
@@ -256,7 +257,34 @@ def analyze_message_endpoint(req: MessageRequest) -> AnalysisResult:
                 )
             )
 
-    # 5. Insufficient Data Check
+    # 5. Machine Learning NLP Scoring & Category Inference
+    if len(lower_text) >= 15:
+        ml_proba = get_binary_classifier().predict_proba(display_text)
+        pred_cat, pred_conf = get_category_classifier().predict_category(display_text)
+
+        if ml_proba >= 0.70 and verdict != Verdict.KNOWN_THREAT:
+            evidence_list.append(
+                Evidence(
+                    id=f"ml_nlp_{len(evidence_list)}",
+                    label="Machine Learning Threat Detector",
+                    weight=round(ml_proba, 2),
+                    source=EvidenceSource.ML,
+                    detail=f"Statistical NLP model flagged suspicious patterns with {int(ml_proba * 100)}% scam confidence",
+                )
+            )
+            if verdict == Verdict.LOW_RISK:
+                verdict = Verdict.SUSPICIOUS
+                risk_score = max(risk_score, min(95, int(ml_proba * 90)))
+                cat_label = pred_cat
+                cat_conf = pred_conf
+                explanation = "This message exhibits linguistic markers characteristic of fraudulent solicitations. Verify through official channels before acting."
+
+        if cat_label in ("other", "benign") and verdict in (Verdict.SUSPICIOUS, Verdict.KNOWN_THREAT):
+            if pred_cat != "benign":
+                cat_label = pred_cat
+                cat_conf = max(cat_conf, pred_conf)
+
+    # 6. Insufficient Data Check
     if verdict == Verdict.LOW_RISK and len(lower_text) < 15 and not entities.urls:
         verdict = Verdict.INSUFFICIENT_EVIDENCE
         risk_score = 20
@@ -264,6 +292,7 @@ def analyze_message_endpoint(req: MessageRequest) -> AnalysisResult:
         cat_conf = 0.50
         explanation = "Insufficient message content provided to establish definitive risk score. Exercise caution."
         next_steps = ["Provide more message context or URL details to evaluate safety."]
+
 
     url_results = [
         URLResult(

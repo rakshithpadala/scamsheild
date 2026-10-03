@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: scamshield-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite:////app/data/scamshield.db
+      - MLFLOW_ALLOW_FILE_STORE=true
+      - MLFLOW_DISABLE_AGENT_HINT=1
+    volumes:
+      - scamshield-data:/app/data
+      - ./mlruns:/app/mlruns
+      - ./ml/artifacts:/app/ml/artifacts
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: scamshield-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: scamshield-mlflow
+    command: mlflow ui --host 0.0.0.0 --port 5000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/app/mlruns
+    restart: unless-stopped
+
+volumes:
+  scamshield-data:

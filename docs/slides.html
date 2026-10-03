@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScamShield AI — Project Defense Presentation (14 Slides)</title>
+  <style>
+    :root {
+      --bg: #0A0E14;
+      --surface: #10151D;
+      --card: #161C26;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --accent: #7C6CFF;
+      --cyan: #22D3EE;
+      --green: #2DD4A0;
+      --red: #FF4D5E;
+      --yellow: #FFB020;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      justify-content: space-between;
+    }
+
+    header {
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background-color: var(--surface);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .badge {
+      background-color: rgba(124, 108, 255, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      border: 1px solid rgba(124, 108, 255, 0.3);
+    }
+
+    .slide-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      max-width: 960px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-number {
+      font-size: 0.85rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #FFF;
+      margin-bottom: 28px;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+    }
+
+    ul.bullets {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    ul.bullets li {
+      position: relative;
+      padding-left: 36px;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: #E5E7EB;
+    }
+
+    ul.bullets li::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    .highlight {
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    .tag-green { color: var(--green); font-weight: 600; }
+    .tag-red { color: var(--red); font-weight: 600; }
+    .tag-yellow { color: var(--yellow); font-weight: 600; }
+
+    footer {
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      background-color: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button:hover {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      color: #FFF;
+    }
+
+    .progress {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>🛡️ ScamShield AI</span>
+      <span class="badge">Mumbai University Capstone</span>
+    </div>
+    <div class="progress" id="slideIndicator">Slide 1 of 14</div>
+  </header>
+
+  <div class="slide-container">
+
+    <!-- Slide 1 -->
+    <div class="slide active" data-slide="1">
+      <div class="slide-number">Slide 01 / 14 • Project Identity</div>
+      <h2>ScamShield AI: Multimodal Digital-Safety Assistant</h2>
+      <ul class="bullets">
+        <li><strong>Focus & Context:</strong> India-tailored multi-modal defense engine targeting UPI fraud, APK drops, and digital arrest extortion.</li>
+        <li><strong>Core Philosophy:</strong> <span class="highlight">Detect → Investigate → Explain → Verify → Act Safely</span>.</li>
+        <li><strong>Research Contribution:</strong> Evidence-based explainability combining statistical NLP, deterministic rules, and cited regulatory RAG.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide" data-slide="2">
+      <div class="slide-number">Slide 02 / 14 • Problem Statement</div>
+      <h2>The Escalating Indian Cyber Threat Landscape</h2>
+      <ul class="bullets">
+        <li><strong>High-Velocity Deception:</strong> Over 13 billion monthly UPI transactions targeted by deceptive collect requests disguised as cashbacks.</li>
+        <li><strong>Psychological Extortion:</strong> Forged law enforcement notices asserting fake "Digital Arrest" over WhatsApp and video calls.</li>
+        <li><strong>Opaque Existing Tools:</strong> Standard filters flag binary "spam" without explaining fraud mechanics or citing official relief channels.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide" data-slide="3">
+      <div class="slide-number">Slide 03 / 14 • Objectives & Principles</div>
+      <h2>System Objectives & Non-Negotiable Principles</h2>
+      <ul class="bullets">
+        <li><strong>Multi-Modal Ingestion:</strong> Unified evaluation across SMS text, device screenshots (OCR), raw links, and forwarded emails.</li>
+        <li><strong>Deterministic Safety:</strong> The LLM <span class="tag-red">never decides the verdict</span>; decisions derive from calibrated ML models and threat feeds.</li>
+        <li><strong>Recall Prioritization:</strong> Optimized for high Recall (<span class="tag-green">93.96%</span>) to minimize dangerous false negatives (missed scams).</li>
+      </ul>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="slide" data-slide="4">
+      <div class="slide-number">Slide 04 / 14 • Architecture</div>
+      <h2>End-to-End System Architecture</h2>
+      <ul class="bullets">
+        <li><strong>Extraction Layer:</strong> Bilateral filtered Tesseract OCR paired with regex entity extractors (UPI IDs, URLs, phone numbers).</li>
+        <li><strong>Parallel Inference Engines:</strong> Binary statistical NLP model, 10-class scam category classifier, 12+ expert heuristic rules, and OpenPhish/URLhaus feed matchers.</li>
+        <li><strong>Calibrated Output:</strong> 0–100 risk score, 4 discrete verdicts, highlighted suspicious text spans, and cited NPCI/RBI advisories.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 5 -->
+    <div class="slide" data-slide="5">
+      <div class="slide-number">Slide 05 / 14 • Data Engineering</div>
+      <h2>Datasets & Research Honesty Statement</h2>
+      <ul class="bullets">
+        <li><strong>Foundational Baselines:</strong> UCI SMS Spam (5,574 rows), Tranco Top-1M benign domains, and active OpenPhish/URLhaus feeds.</li>
+        <li><strong>Calibrated Synthetic Corpus:</strong> 1,000 synthetic Indian scam samples across 10 categories generated via randomized slot templates.</li>
+        <li><strong>Independent Test Benchmark:</strong> 60-row hand-crafted gold test set (40 scams + 20 benign hard negatives) with <span class="highlight">0 overlap / zero leakage</span>.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 6 -->
+    <div class="slide" data-slide="6">
+      <div class="slide-number">Slide 06 / 14 • Text Model Benchmarks</div>
+      <h2>Binary Text Scam Detection (UCI SMS Benchmark)</h2>
+      <ul class="bullets">
+        <li><strong>Benchmarked 6 Classifiers:</strong> Evaluated Logistic Regression, Linear SVM, Random Forest, XGBoost, Decision Tree, and KNN.</li>
+        <li><strong>Selected Model:</strong> Logistic Regression achieved <span class="tag-green">93.96% Recall</span>, <span class="tag-green">0.0093 FPR</span>, and <span class="highlight">0.9920 ROC-AUC</span>.</li>
+        <li><strong>Safety Decision Rationale:</strong> Prioritizing recall guarantees minimal missed scams (FNR: 6.04%) with sub-millisecond inference.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 7 -->
+    <div class="slide" data-slide="7">
+      <div class="slide-number">Slide 07 / 14 • Category Classification</div>
+      <h2>10-Class Scam Category Model Results</h2>
+      <ul class="bullets">
+        <li><strong>10 Indian Threat Classes:</strong> Bank KYC, UPI Collect, Cashback/Lottery, Job, Investment, Loan, Delivery, Police, Tech Support, Other.</li>
+        <li><strong>Representation Comparison:</strong> Sparse TF-IDF n-grams achieved <span class="tag-green">82.50% Accuracy</span> & <span class="tag-green">0.8124 Macro F1</span> vs MiniLM embeddings (80.00%).</li>
+        <li><strong>Deployment Efficiency:</strong> Selected TF-IDF + Logistic Regression operates with <1MB memory footprint and zero cold-start latency.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 8 -->
+    <div class="slide" data-slide="8">
+      <div class="slide-number">Slide 08 / 14 • Heuristics & Threat Intel</div>
+      <h2>Expert Rule Engine & Threat Intelligence Feeds</h2>
+      <ul class="bullets">
+        <li><strong>12+ Heuristic Rules:</strong> Unit-tested triggers for urgency extortion, UPI PIN entry demands, and digital arrest threats.</li>
+        <li><strong>Span-Level Explainability:</strong> Locates exact start/end character offsets for suspicious phrases, highlighted directly in the UI.</li>
+        <li><strong>Live Threat Intel Matching:</strong> Verified OpenPhish / URLhaus feed matches trigger an immediate <span class="tag-red">KNOWN_THREAT</span> override.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 9 -->
+    <div class="slide" data-slide="9">
+      <div class="slide-number">Slide 09 / 14 • Risk Fusion</div>
+      <h2>Calibrated Multi-Modal Risk Fusion Engine</h2>
+      <ul class="bullets">
+        <li><strong>Transparent Linear Weights:</strong> Fusion score = 0.45 × Rules + 0.35 × Statistical ML + 0.20 × Lexical URL risk.</li>
+        <li><strong>Four Discrete Verdicts:</strong> <span class="tag-red">KNOWN_THREAT</span> (95–100), <span class="tag-yellow">SUSPICIOUS</span> (60–94), <span class="tag-green">LOW_RISK</span> (0–30), and INSUFFICIENT_EVIDENCE.</li>
+        <li><strong>SSRF-Safe Design:</strong> Submitted URLs are lexically analyzed without server-side HTTP rendering to eliminate server vulnerabilities.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 10 -->
+    <div class="slide" data-slide="10">
+      <div class="slide-number">Slide 10 / 14 • RAG & Assistance</div>
+      <h2>Retrieval-Augmented Guidance (RAG) & 1930 Relief</h2>
+      <ul class="bullets">
+        <li><strong>Official Corpus:</strong> Indexed 19 regulatory advisories from Reserve Bank of India (RBI), NPCI, and Indian Cyber Crime Coordination Centre (I4C).</li>
+        <li><strong>Core Banking Truths:</strong> Enforces critical public awareness guidance (e.g., <em>"A UPI PIN is never required to receive money"</em>).</li>
+        <li><strong>Emergency Protocol:</strong> Automatically routes users to the National Cyber Crime Helpline (<span class="highlight">1930</span>) and <span class="highlight">cybercrime.gov.in</span>.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 11 -->
+    <div class="slide" data-slide="11">
+      <div class="slide-number">Slide 11 / 14 • Command Center UI</div>
+      <h2>Security Command Center Frontend</h2>
+      <ul class="bullets">
+        <li><strong>Calm Security Aesthetic:</strong> Dark command-center interface built with React, Vite, Tailwind CSS, and Framer Motion.</li>
+        <li><strong>Actionable Feedback Order:</strong> Animated risk gauge → Category chip → Highlighted text spans → Weighted evidence bars → Cited guidance.</li>
+        <li><strong>Inclusive Design:</strong> Accessible typography and plain-language guidance crafted specifically for non-technical and elderly citizens.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 12 -->
+    <div class="slide" data-slide="12">
+      <div class="slide-number">Slide 12 / 14 • Syllabus Mapping</div>
+      <h2>Mumbai University AI/ML Syllabus Mapping</h2>
+      <ul class="bullets">
+        <li><strong>Supervised Learning & NLP:</strong> 6-model binary benchmark and 10-class TF-IDF vs SentenceTransformer comparison.</li>
+        <li><strong>Unsupervised ML & Dimensionality Reduction:</strong> K-Means narrative clustering with silhouette validation; 2D PCA feature projection.</li>
+        <li><strong>Association Mining & Graph Algorithms:</strong> Apriori indicator co-occurrence; BFS, DFS, and A* shortest threat path graph exploration.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 13 -->
+    <div class="slide" data-slide="13">
+      <div class="slide-number">Slide 13 / 14 • Ethics & Safety</div>
+      <h2>Ethics, Credential Guardrails & Limitations</h2>
+      <ul class="bullets">
+        <li><strong>Zero Credential Ingestion:</strong> System never solicits, stores, or logs UPI PINs, passwords, CVVs, or OTPs.</li>
+        <li><strong>Responsible AI Claims:</strong> Generates "high-risk characteristics detected", never "definitely a scam", with transparent limitations notices.</li>
+        <li><strong>Free-Tier & Offline Resilience:</strong> Deterministic template fallbacks guarantee continuous operation during network or quota exhaustion.</li>
+      </ul>
+    </div>
+
+    <!-- Slide 14 -->
+    <div class="slide" data-slide="14">
+      <div class="slide-number">Slide 14 / 14 • Conclusion & Demo</div>
+      <h2>Demonstration, Viva Takeaways & Future Work</h2>
+      <ul class="bullets">
+        <li><strong>Live Demo Flow:</strong> Validating a UPI collect lure, a fake police digital arrest extortion message, and a benign bank OTP alert.</li>
+        <li><strong>Zero-Config Deployment:</strong> Verified clean-clone reproducibility using containerized <span class="highlight">docker compose up --build</span>.</li>
+        <li><strong>Future Enhancements:</strong> On-device mobile keyboard interceptor, multilingual vernacular support (Hindi/Marathi), and pgvector scaling.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="controls">
+      <button onclick="prevSlide()">← Previous</button>
+      <button onclick="nextSlide()">Next →</button>
+    </div>
+    <div>
+      <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 14;
+
+    function showSlide(n) {
+      const slides = document.querySelectorAll('.slide');
+      if (n > totalSlides) currentSlide = 1;
+      if (n < 1) currentSlide = totalSlides;
+
+      slides.forEach(s => s.classList.remove('active'));
+      const active = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+      if (active) active.classList.add('active');
+
+      document.getElementById('slideIndicator').textContent = `Slide ${currentSlide} of ${totalSlides}`;
+    }
+
+    function nextSlide() {
+      currentSlide++;
+      showSlide(currentSlide);
+    }
+
+    function prevSlide() {
+      currentSlide--;
+      showSlide(currentSlide);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
+      if (e.key === 'ArrowLeft') prevSlide();
+    });
+  </script>
+</body>
+</html>

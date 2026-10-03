@@ -1,0 +1,122 @@
+{
+  "analysis_id": "fix-known-001",
+  "input_type": "message",
+  "verdict": "KNOWN_THREAT",
+  "risk_score": 95,
+  "category": {
+    "label": "bank_kyc_account",
+    "confidence": 0.92
+  },
+  "evidence": [
+    {
+      "id": "rule-urgency-01",
+      "label": "Urgency / time pressure",
+      "weight": 0.8,
+      "source": "rule",
+      "spans": [
+        { "start": 0, "end": 39, "text": "URGENT: Your SBI account will be blocked" }
+      ],
+      "detail": "Message creates immediate time pressure to provoke hasty action."
+    },
+    {
+      "id": "rule-otp-request-01",
+      "label": "OTP / PIN / password request",
+      "weight": 0.9,
+      "source": "rule",
+      "spans": [
+        { "start": 120, "end": 157, "text": "send your OTP and debit card PIN to us" }
+      ],
+      "detail": "Asks for OTP and PIN. No legitimate bank ever requests these via SMS."
+    },
+    {
+      "id": "rule-kyc-01",
+      "label": "KYC / verification lure",
+      "weight": 0.7,
+      "source": "rule",
+      "spans": [
+        { "start": 56, "end": 93, "text": "complete KYC verification immediately" }
+      ],
+      "detail": "Uses 'KYC verification' as a pretence — a common social-engineering tactic."
+    },
+    {
+      "id": "rule-ext-link-01",
+      "label": "External / shortened link",
+      "weight": 0.6,
+      "source": "rule",
+      "spans": [
+        { "start": 95, "end": 119, "text": "http://bit.ly/sbi-kyc-upd" }
+      ],
+      "detail": "Contains a shortened URL that obscures the true destination."
+    },
+    {
+      "id": "ml-text-01",
+      "label": "ML text classifier: scam",
+      "weight": 0.88,
+      "source": "ml",
+      "spans": [],
+      "detail": "TF-IDF + logistic regression model assigns 0.94 scam probability."
+    },
+    {
+      "id": "intel-url-01",
+      "label": "URL found in phishing feed",
+      "weight": 1.0,
+      "source": "intel",
+      "spans": [
+        { "start": 95, "end": 119, "text": "http://bit.ly/sbi-kyc-upd" }
+      ],
+      "detail": "URL matches OpenPhish community phishing feed (updated 2026-10-02)."
+    }
+  ],
+  "entities": {
+    "urls": ["http://bit.ly/sbi-kyc-upd"],
+    "phones": ["+91-9876500000"],
+    "emails": [],
+    "upi_ids": []
+  },
+  "url_results": [
+    {
+      "url": "http://bit.ly/sbi-kyc-upd",
+      "ml_risk": 0.91,
+      "features": {
+        "length": 25,
+        "subdomain_count": 0,
+        "digit_ratio": 0.0,
+        "has_https": false,
+        "is_shortened": true,
+        "entropy": 3.12
+      },
+      "intel": {
+        "status": "match",
+        "provider": "openphish"
+      }
+    }
+  ],
+  "ocr": null,
+  "explanation": "This message shows several high-risk characteristics commonly seen in bank impersonation scams targeting Indian customers. It pretends to be from SBI and creates urgency by threatening account suspension. It asks for your OTP and debit card PIN — no legitimate bank ever requests these via SMS. The shortened link has been found in a known phishing feed. Please do not click the link or share any credentials.",
+  "next_steps": [
+    "Do NOT click the link or share any OTP, PIN, or password.",
+    "Block the sender's number on your phone.",
+    "If you already shared details, call your bank's official helpline immediately.",
+    "Report this message: call 1930 (National Cyber Crime Helpline) or visit https://cybercrime.gov.in",
+    "Forward the SMS to your bank's official fraud-reporting number."
+  ],
+  "citations": [
+    {
+      "source": "rbi_beaware_financial_fraud.pdf",
+      "title": "BE(A)WARE — Modus Operandi of Financial Fraudsters",
+      "page": 4,
+      "snippet": "No bank/RBI official will ever ask for your OTP, PIN, CVV or password through SMS, call, or email.",
+      "url": "https://www.rbi.org.in/Scripts/BS_PressReleaseDisplay.aspx?prid=53372"
+    },
+    {
+      "source": "mha_financial_fraud.pdf",
+      "title": "Secure Online Financial Services",
+      "page": 2,
+      "snippet": "If you receive a suspicious message asking for banking credentials, report it immediately to 1930.",
+      "url": "https://cybercrime.gov.in/"
+    }
+  ],
+  "limitations": "This analysis is automated and may not capture every nuance. The verdict reflects high-risk characteristics detected by pattern matching, machine learning, and threat-intelligence lookups — it is not a legal determination. Always verify independently with your bank using official contact details.",
+  "model_version": "0.1.0",
+  "created_at": "2026-10-03T14:00:00Z"
+}

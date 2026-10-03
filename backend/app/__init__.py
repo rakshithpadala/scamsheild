@@ -1,1 +1,1 @@
-"""ScamShield Backend Application Package."""
+"""ScamShield AI backend package."""

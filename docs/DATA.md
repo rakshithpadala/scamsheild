@@ -63,6 +63,14 @@ Real-world scam messages in the Indian context (specifically targeting UPI fraud
 
 ---
 
+## Data Integrity and Safety
+
+- Phishing and malware URLs are treated as threat data only and never opened in a browser.
+- Raw datasets are kept outside Git tracking via `.gitignore`.
+- API keys, personal records, and credentials are never stored in the repository.
+
+---
+
 ## Summary of Raw Datasets
 
 | Dataset | Provider | Size / Rows | Primary Purpose | License |

@@ -1,0 +1,46 @@
+{
+  "analysis_id": "fix-lowrisk-001",
+  "input_type": "message",
+  "verdict": "LOW_RISK",
+  "risk_score": 12,
+  "category": {
+    "label": "other",
+    "confidence": 0.55
+  },
+  "evidence": [
+    {
+      "id": "ml-text-03",
+      "label": "ML text classifier: ham",
+      "weight": 0.15,
+      "source": "ml",
+      "spans": [],
+      "detail": "TF-IDF + logistic regression model assigns 0.08 scam probability."
+    }
+  ],
+  "entities": {
+    "urls": [],
+    "phones": ["+91-22-40402020"],
+    "emails": [],
+    "upi_ids": []
+  },
+  "url_results": [],
+  "ocr": null,
+  "explanation": "This message appears to be a standard delivery notification from a recognised courier service. No scam indicators were detected by our rule engine, ML classifier, or threat-intelligence feeds. The language, formatting, and phone number are consistent with legitimate delivery updates.",
+  "next_steps": [
+    "If you are expecting a delivery, you can follow up using the tracking number provided.",
+    "If you did NOT order anything, verify by contacting the courier service using their official website or customer care number.",
+    "Never share OTP or payment details with a delivery agent."
+  ],
+  "citations": [
+    {
+      "source": "maharashtra_cyber_awareness.pdf",
+      "title": "Cyber Security Awareness for Citizens",
+      "page": 8,
+      "snippet": "Always verify delivery notifications through official courier tracking websites rather than clicking links in messages.",
+      "url": "https://cybercrime.gov.in/"
+    }
+  ],
+  "limitations": "This analysis is automated. A low-risk result means no scam patterns were detected — it does not guarantee the message is genuine. Always verify important communications independently.",
+  "model_version": "0.1.0",
+  "created_at": "2026-10-03T14:10:00Z"
+}

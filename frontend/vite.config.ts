@@ -10,4 +10,26 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-});
+  server: {
+    port: 5173,
+    host: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/analyze": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/health": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/copilot": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+    },
+  },
+});
